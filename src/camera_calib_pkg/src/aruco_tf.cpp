@@ -378,7 +378,24 @@ void ArucoTF::verifyCalibration(const int &marker_id) {
     tf2::fromMsg(ArucoTF::tform_markerToWorld, tf_toolToWorld);
 
     // Calculate the 7 dimensional error (x,y,z,qx,qy,qz,qw) between the two
+    double x_error = tf_calibMarkerToWorld.getOrigin()[0] - tf_toolToWorld.getOrigin()[0];
+    double y_error = tf_calibMarkerToWorld.getOrigin()[1] - tf_toolToWorld.getOrigin()[1];
+    double z_error = tf_calibMarkerToWorld.getOrigin()[2] - tf_toolToWorld.getOrigin()[2];
+    double qx_error = tf_calibMarkerToWorld.getRotation()[0] - tf_toolToWorld.getRotation()[0];
+    double qy_error = tf_calibMarkerToWorld.getRotation()[1] - tf_toolToWorld.getRotation()[1];
+    double qz_error = tf_calibMarkerToWorld.getRotation()[2] - tf_toolToWorld.getRotation()[2];
+    double qw_error = tf_calibMarkerToWorld.getRotation()[3] - tf_toolToWorld.getRotation()[3];
 
+    ROS_INFO_STREAM(
+      "X Error: " << x_error << "\n" <<
+      "Y Error: " << y_error << "\n" <<
+      "Z Error: " << z_error << "\n" <<
+      "QX Error: " << qx_error << "\n" <<
+      "QY Error: " << qy_error << "\n" <<
+      "QZ Error: " << qz_error << "\n" <<
+      "QW Error: " << qw_error << "\n"
+    );
+    
     sample_cnt++;
   }
   ROS_INFO_ONCE("Verification samples gathered");
