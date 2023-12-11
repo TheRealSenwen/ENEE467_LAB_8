@@ -424,21 +424,48 @@ void ArucoTF::verifyCalibration(const int &marker_id) {
   Eigen::VectorXd sample_mean(7);
   sample_mean << 0, 0, 0, 0, 0, 0, 0;
 
+  Eigen::MatrixXd M(ArucoTF::num_samples, 7);
+
   for(int i = 0; i < ArucoTF::num_samples; i++){
     Eigen::VectorXd sample_error(7);
     sample_error(0) = x_errors[i];
+    M(i,0) = x_errors[i];
+
     sample_error(1) = y_errors[i];
+    M(i,1) = y_errors[i];
+
     sample_error(2) = z_errors[i];
+    M(i,2) = z_errors[i];
+
     sample_error(3) = qx_errors[i];
+    M(i,3) = qx_errors[i];
+
     sample_error(4) = qy_errors[i];
+    M(i,4) = qy_errors[i];
+
     sample_error(5) = qz_errors[i];
+    M(i,5) = qz_errors[i];
+
     sample_error(6) = qw_errors[i];
+    M(i,6) = qw_errors[i];
 
     sample_mean += sample_error;
   }
 
   sample_mean /= ArucoTF::num_samples;
   std::cout << "Sample Mean =\n" << sample_mean << std::endl;
+  std::cout << "M matrix =\n" << M << std::endl;
+
+  double ssq_quat = sqrt(pow(sample_mean(3),2) + pow(sample_mean(4),2) + pow(sample_mean(5),2) + pow(sample_mean(6),2));
+  std::cout << "Sqrt of Sum of Squares for Quaternion = " << ssq_quat << std::endl;
+
+  Eigen::VectorXd ones = Eigen::VectorXd::Constant(ArucoTF::num_samples, 1, 1);
+  
+  Eigen::MatrixXd inter = M-ones*sample_mean.transpose();
+  Eigen::MatrixXd sample_covariance = inter.transpose()*inter;
+  sample_covariance /= (ArucoTF::num_samples - 1);
+
+  std::cout << "Covariance matrix =\n" << sample_covariance << std::endl;
 
 }
 
