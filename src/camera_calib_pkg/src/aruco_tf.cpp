@@ -362,6 +362,16 @@ void ArucoTF::verifyCalibration(const int &marker_id) {
   ROS_INFO_STREAM("Move robot to pose...");
   ROS_INFO_STREAM("Press ENTER to record sample.");
 
+  double x_errors[ArucoTF::num_samples];
+  double y_errors[ArucoTF::num_samples];
+  double z_errors[ArucoTF::num_samples];
+
+  double qx_errors[ArucoTF::num_samples];
+  double qy_errors[ArucoTF::num_samples];
+  double qz_errors[ArucoTF::num_samples];
+  double qw_errors[ArucoTF::num_samples];
+
+
   while (sample_cnt < ArucoTF::num_samples) {
     ROS_INFO_STREAM("Pose: " << sample_cnt + 1 << "/"
                         << ArucoTF::num_samples);
@@ -381,6 +391,7 @@ void ArucoTF::verifyCalibration(const int &marker_id) {
     double x_error = tf_calibMarkerToWorld.getOrigin()[0] - tf_toolToWorld.getOrigin()[0];
     double y_error = tf_calibMarkerToWorld.getOrigin()[1] - tf_toolToWorld.getOrigin()[1];
     double z_error = tf_calibMarkerToWorld.getOrigin()[2] - tf_toolToWorld.getOrigin()[2];
+
     double qx_error = tf_calibMarkerToWorld.getRotation()[0] - tf_toolToWorld.getRotation()[0];
     double qy_error = tf_calibMarkerToWorld.getRotation()[1] - tf_toolToWorld.getRotation()[1];
     double qz_error = tf_calibMarkerToWorld.getRotation()[2] - tf_toolToWorld.getRotation()[2];
@@ -395,12 +406,39 @@ void ArucoTF::verifyCalibration(const int &marker_id) {
       "QZ Error: " << qz_error << "\n" <<
       "QW Error: " << qw_error << "\n"
     );
+
+    x_errors[sample_cnt] = x_error;
+    y_errors[sample_cnt] = y_error;
+    z_errors[sample_cnt] = z_error;
+
+    qx_errors[sample_cnt] = qx_error;
+    qy_errors[sample_cnt] = qy_error;
+    qz_errors[sample_cnt] = qz_error;
+    qw_errors[sample_cnt] = qw_error;
     
     sample_cnt++;
   }
   ROS_INFO_ONCE("Verification samples gathered");
 
   // Once the errors are gathered, calculate sample mean vector and sample covariance matrix
+  Eigen::VectorXd sample_mean(7);
+  sample_mean << 0, 0, 0, 0, 0, 0, 0;
+
+  for(int i = 0; i < ArucoTF::num_samples; i++){
+    Eigen::VectorXd sample_error(7);
+    sample_error(0) = x_errors[i];
+    sample_error(1) = y_errors[i];
+    sample_error(2) = z_errors[i];
+    sample_error(3) = qx_errors[i];
+    sample_error(4) = qy_errors[i];
+    sample_error(5) = qz_errors[i];
+    sample_error(6) = qw_errors[i];
+
+    sample_mean += sample_error;
+  }
+
+  sample_mean /= ArucoTF::num_samples;
+  std::cout << "Sample Mean =\n" << sample_mean << std::endl;
 
 }
 
